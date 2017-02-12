@@ -95,7 +95,6 @@ class AntGroup:
         The amount of time that has passed since the beginning of 
         the simulation.
     """
-    SPEED = 1
 
     def __init__(self, n):
         self.n = n
@@ -113,7 +112,7 @@ class AntGroup:
         # loop through the verticies of the ngon
         for vertex in ngon.getVerticies():
             # add an ant to the group
-            self.ants.append(Ant(vertex, self.SPEED))
+            self.ants.append(Ant(vertex, SPEED))
         # set the relationship between ant and next ant
         for ant,nextAnt in zip(self.ants[:-1], self.ants[1:]):
             ant.setNextAnt(nextAnt)
@@ -172,7 +171,6 @@ class Ngon:
     d: int
         distance from origin each vertex of N-gon has
     """
-    d = 1
 
     def __init__(self, n, origin=(0,0)):
         self.n = n
@@ -191,7 +189,7 @@ class Ngon:
         phi = 0 # start the first point at phi=0
         points = []
         for phi in np.arange(0, 2*pi, 2*pi/self.n):
-            points.append(self.d*[cos(phi), sin(phi)])
+            points.append(INITIAL_DISTANCE_ORIGIN*[cos(phi), sin(phi)])
 
         return points
 
@@ -216,10 +214,8 @@ class AnimationManager:
         Keeps track of the previous and the current positions of the
         ants.
     """
-    def __init__(self, alpha, antGroup):
-        self.alpha = alpha
+    def __init__(self, antGroup):
         self.antGroup = antGroup
-        self.speed = antGroup.SPEED # speed at which all ants move
         self.antPositionsWithHistory = {"x":[], "y":[]}
 
     def _getDtForNextStep(self):
@@ -229,7 +225,7 @@ class AnimationManager:
         if(distance < 0.0001):
             raise AntsReachedEndException
         # return the timestep
-        return self.alpha/self.speed*distance
+        return ALPHA/SPEED*distance
     
     def step(self):
         dt = self._getDtForNextStep()
@@ -252,8 +248,10 @@ class AnimationManager:
 ###############################################################
 if __name__ == '__main__':
     NUMBER_OF_ANTS = 4
+    INITIAL_DISTANCE_ORIGIN = 1
+    SPEED = 1
     ALPHA = 1/1000
-    animationManager = AnimationManager(ALPHA, AntGroup(NUMBER_OF_ANTS))
+    animationManager = AnimationManager(AntGroup(NUMBER_OF_ANTS))
 
     def init():
         """initialize animation"""
@@ -277,7 +275,10 @@ if __name__ == '__main__':
     # set up figure and animation
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal', autoscale_on=False,
-                         xlim=(-1, 1), ylim=(-1, 1))
+                         xlim=(-INITIAL_DISTANCE_ORIGIN, 
+                             INITIAL_DISTANCE_ORIGIN), 
+                         ylim=(-INITIAL_DISTANCE_ORIGIN, 
+                             INITIAL_DISTANCE_ORIGIN))
     ax.grid()
     # dots to go on the plot
     dots, = ax.plot([], 'bo', ms=1)
