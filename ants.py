@@ -2,6 +2,7 @@ import numpy as np
 from math import pi,cos,sin,sqrt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import pdb
 
 class NoNextPosException(Exception):
     """
@@ -189,7 +190,8 @@ class Ngon:
         phi = 0 # start the first point at phi=0
         points = []
         for phi in np.arange(0, 2*pi, 2*pi/self.n):
-            points.append(INITIAL_DISTANCE_ORIGIN*[cos(phi), sin(phi)])
+            points.append([INITIAL_DISTANCE_ORIGIN*cos(phi), 
+                INITIAL_DISTANCE_ORIGIN*sin(phi)])
 
         return points
 
@@ -243,21 +245,35 @@ class AnimationManager:
     def getTimeElapsed(self):
         return self.antGroup.timeElapsed
 
+    def getAntGroup(self):
+        return self.antGroup
+
+def calcAnalyticalSolution():
+    ngon = Ngon(NUMBER_OF_ANTS)
+    phi = ngon.getInteriorAngle()
+    intialDistanceAnts = 2*INITIAL_DISTANCE_ORIGIN*sin(2*pi/NUMBER_OF_ANTS/2)
+    return intialDistanceAnts/(SPEED*(1-sin(phi-pi/2)))
+
 ###############################################################
 # Main
 ###############################################################
+NUMBER_OF_ANTS = 4
+SPEED = 1
+INITIAL_DISTANCE_ORIGIN = 1
+ALPHA = 1/100
+
 if __name__ == '__main__':
-    NUMBER_OF_ANTS = 4
-    INITIAL_DISTANCE_ORIGIN = 1
-    SPEED = 1
-    ALPHA = 1/1000
     animationManager = AnimationManager(AntGroup(NUMBER_OF_ANTS))
 
     def init():
         """initialize animation"""
         dots.set_data([],[])
         time_text.set_text('')
-        return dots, time_text, dt_text
+        dt_text.set_text('')
+        distance_text.set_text('')
+        analy_text.set_text('expected time = %.10f' % 
+                calcAnalyticalSolution())
+        return dots, time_text, dt_text,
 
     def animate(i):
         """perform animation step"""
@@ -266,8 +282,11 @@ if __name__ == '__main__':
         dots.set_data(x,y)
         time_text.set_text('time = %.10f' % 
                 animationManager.getTimeElapsed())
-        dt_text.set_text('dt = %.10f' % animationManager._getDtForNextStep())
-        return dots, time_text, dt_text,
+        dt_text.set_text('dt = %.10f' % 
+                animationManager._getDtForNextStep())
+        distance_text.set_text('distance = %.10f' % 
+                animationManager.getAntGroup().getDistanceBetweenAnts())
+        return dots, time_text, dt_text, distance_text,
     
     ###########################################################
     # Setup plot
@@ -281,11 +300,14 @@ if __name__ == '__main__':
                              INITIAL_DISTANCE_ORIGIN))
     ax.grid()
     # dots to go on the plot
-    dots, = ax.plot([], 'bo', ms=1)
+    dots, = ax.plot([], 'bo', ms=.3)
     # declare the text that indicates elapsed time
     time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
     # text that indicates how much time each step corresponds to
     dt_text = ax.text(0.02, 0.90, '', transform=ax.transAxes)
+    # text that idicates the analytical solution
+    analy_text = ax.text(0.5, 0.95, '', transform=ax.transAxes)
+    distance_text = ax.text(0.02, 0.85, '', transform=ax.transAxes)
 
     # choose the interval based on dt and the time to animate one step
     from time import time
@@ -302,7 +324,7 @@ if __name__ == '__main__':
     # interval = 1000 * dt - (t1 - t0)
     interval = 0 
 
-    ani = animation.FuncAnimation(fig, animate, frames=10000,
+    ani = animation.FuncAnimation(fig, animate, frames=500,
                                   interval=interval, 
                                   blit=True, 
                                   init_func=init,
@@ -313,7 +335,8 @@ if __name__ == '__main__':
     # the video can be embedded in html5.  You may need to adjust this for
     # your system: for more information, see
     # http://matplotlib.sourceforge.net/api/animation_api.html
+    ani.save('ani.gif', writer='imagemagick', fps=50)
     #ani.save('double_pendulum.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
     
-    plt.show()
+    # plt.show()
 

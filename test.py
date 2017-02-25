@@ -13,12 +13,11 @@ d: int
 speed: int
     Speed ants should move with.
 """
-d = 1
-speed = 1
+d = ants.INITIAL_DISTANCE_ORIGIN
+speed = ants.SPEED
 
 class AntTest(unittest.TestCase):
     def setUp(self):
-        speed = 1
         self.dt = 1
         self.a1 = ants.Ant([0,0], speed)
         self.a2 = ants.Ant([1,0], speed)
@@ -52,7 +51,7 @@ class AntGroupTest(unittest.TestCase):
 
     def testGroup(self):
         # define the expected positions for the ants
-        positions = [[1,0],[0,1],[-1,0],[0,-1]]
+        positions = [[d,0],[0,d],[-d,0],[0,-d]]
         # get the ants
         ants = self.group.getAnts()
         # loop through the ants
@@ -92,11 +91,11 @@ class NgonTest(unittest.TestCase):
     def testPoints(self):
         # 4 sided
         points = self.ngon4.getVerticies()
-        expected = [[1,0], [0,1], [-1,0], [0,-1]]
+        expected = [[d,0], [0,d], [-d,0], [0,-d]]
         assert_almost_equal(points, expected)
         # 3 sided
         points = self.ngon3.getVerticies()
-        expected = [[1,0], [-1/2,sqrt(3)/2], [-1/2,-sqrt(3)/2]]
+        expected = [[d,0], [-d/2,d*sqrt(3)/2], [-d/2,-d*sqrt(3)/2]]
         assert_almost_equal(points, expected)
 
     def interiorAngle(self, ngon, expected):
@@ -130,11 +129,10 @@ class PlotTest(unittest.TestCase):
 
 class AnimationManagerTest(unittest.TestCase):
     numAnts = 4
-    alpha = 1/10
-
+    
     def setUp(self):
         antGroup = ants.AntGroup(self.numAnts)
-        self.animationManager = ants.AnimationManager(self.alpha, antGroup)
+        self.animationManager = ants.AnimationManager(antGroup)
 
     def testGetPositions(self):
         self.animationManager.step()
