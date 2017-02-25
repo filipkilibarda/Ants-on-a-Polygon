@@ -257,7 +257,7 @@ def calcAnalyticalSolution():
 ###############################################################
 # Main
 ###############################################################
-NUMBER_OF_ANTS = 4
+NUMBER_OF_ANTS = 7
 SPEED = 1
 INITIAL_DISTANCE_ORIGIN = 1
 ALPHA = 1/100
@@ -324,7 +324,7 @@ if __name__ == '__main__':
     # interval = 1000 * dt - (t1 - t0)
     interval = 0 
 
-    ani = animation.FuncAnimation(fig, animate, frames=500,
+    ani = animation.FuncAnimation(fig, animate, frames=2000,
                                   interval=interval, 
                                   blit=True, 
                                   init_func=init,
