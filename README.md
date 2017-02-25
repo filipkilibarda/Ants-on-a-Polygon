@@ -8,5 +8,9 @@ How long does it take for them to reach the center?
 
 Solution
 ----
+Thanks to [Jake Vanderplas' animation tutorial](https://jakevdp.github.io/blog/2012/08/18/matplotlib-animation-tutorial/), I was able to make a cool animation out of this problem.
+
+So start off with just 4 ants, because that's the simplest case, and you'll see why.
+
 ![ants on a polygon](/out.gif?raw=true)
 
