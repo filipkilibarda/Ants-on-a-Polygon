@@ -1,6 +1,6 @@
 Ants on a Polygon...
 ----
-So you have `n` ants arranged on a symetrical polygon with `n` sides. Each ant moves toward the ant infront of it. We can assume that each ant starts a distance, `1` from the ant infront of it and moves at a speed `1`.
+So you have `n` ants arranged on a symetrical polygon with `n` sides. Each ant moves exactly toward the ant infront of it until they all reach the center. We can assume that each ant starts a distance, `d` from the ant infront of it and moves at a speed `v`.
 
 Question
 ----
@@ -20,4 +20,4 @@ Now that we've established that understanding, we can ask, how fast is each ant 
 
 ![just a few ants arranged on a square](/square.png?raw=true)
 
-Produced with ![GeoGebra](https://www.math10.com/en/geometry/geogebra/geogebra.html).
+Produced with [GeoGebra](https://www.math10.com/en/geometry/geogebra/geogebra.html).
