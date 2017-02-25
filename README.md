@@ -14,3 +14,4 @@ So start off with just 4 ants, because that's the simplest case, and you'll see 
 
 ![ants on a polygon](/out.gif?raw=true)
 
+![just a few ants arranged on a square](/square.png?raw=true)
