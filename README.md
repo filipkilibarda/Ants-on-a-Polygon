@@ -14,4 +14,8 @@ So start off with just 4 ants, because that's the simplest case, and you'll see 
 
 ![ants on a polygon](/out.gif?raw=true)
 
+Since each ant is moving at the same speed, and each ant starts the same distance from the ant in front of it, the problem remains completely symetrical through time. Thus, in the case of 4 ants arranged on a square, we can assume that the y will continue to form a perfect square untill they all reach the middle.
+
 ![just a few ants arranged on a square](/square.png?raw=true)
+
+Produced with ![GeoGebra](https://www.math10.com/en/geometry/geogebra/geogebra.html).
