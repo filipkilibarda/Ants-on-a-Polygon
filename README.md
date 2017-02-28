@@ -16,9 +16,11 @@ So start off with just 4 ants, because that's the simplest case, and you'll see 
 
 Since each ant is moving at the same speed, and each ant starts the same distance from the ant in front of it, the problem remains completely symetrical through time. Thus, in the case of 4 ants arranged on a square, we can assume that they will continue to form a perfect square untill they all reach the middle.
 
-Now that we've established that understanding, we can ask, how fast is each ant closing in on the ant in front of it? Looking at the figure below, the angle formed between `ant1` and `ant2` is `90 degrees`. So `ant2` is always moving exactly *perpendicular* to `ant1`, which means that `ant2` is never moving *away* from `ant1`. Thus, we can conclude that `ant1` is closing in on `ant2` at a speed of `v`. Which means, it will take `d/v` for them to reach the center.
+Now we can ask, how fast is each ant closing in on the ant in front of it? Looking at the figure below, the angle formed between `ant1` and `ant2` is `90 degrees`. So `ant2` is always moving exactly *perpendicular* to `ant1`, which means that `ant2` is never moving *away* from or *toward* `ant1`. Thus, we can conclude that `ant1` is closing in on `ant2` at the speed it's moving at of `v`. Which means, it will take `d/v` for them to reach the center.
 
 ![just a few ants arranged on a square](/square.png?raw=true)
+
+Produced with [GeoGebra](https://www.math10.com/en/geometry/geogebra/geogebra.html).
 
 How about with `n` ants arranged on a polygon with `n` sides?
 
@@ -30,6 +32,6 @@ def calcAnalyticalSolution():
     return intialDistanceAnts/(SPEED*(1-sin(phi-pi/2)))
 ```
 
-Will come back to this, have actual homework to do...
+In progress
 
-Produced with [GeoGebra](https://www.math10.com/en/geometry/geogebra/geogebra.html).
+
