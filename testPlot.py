@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 if __name__ == '__main__':
-    curr = np.array([[0,1],[0,1]])
+    curr = np.array([[[0,1],[0,1]],[[2,1],[3,1]]])
     # set up figure and animation
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal', autoscale_on=False,
@@ -12,6 +12,7 @@ if __name__ == '__main__':
     ax.grid()
     # dots to go on the plot
     dots, = ax.plot([], 'bo', ms=6)
+    print(curr[0])
 
     def init():
         """initialize animation"""
@@ -20,7 +21,8 @@ if __name__ == '__main__':
 
     def animate(i):
         """perform animation step"""
-        dots.set_data(curr[0][i], curr[1][i])
+        dots.set_data(curr)
+        print(curr)
         return dots,
 
     # choose the interval based on dt and the time to animate one step
@@ -31,10 +33,12 @@ if __name__ == '__main__':
     # interval = 1000 * dt - (t1 - t0)
     interval = 2*(t1 - t0)
 
-    ani = animation.FuncAnimation(fig, animate, frames=2,
+    ani = animation.FuncAnimation(fig, animate, frames=3,
                                   interval=interval, 
                                   blit=True, 
-                                  init_func=init)
+                                  init_func=init,
+                                  repeat=False,
+                                  )
 
     # save the animation as an mp4.  This requires ffmpeg or mencoder to be
     # installed.  The extra_args ensure that the x264 codec is used, so that

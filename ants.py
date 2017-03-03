@@ -1,8 +1,6 @@
 import numpy as np
 from math import pi,cos,sin,sqrt
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import pdb
+import simulation as sim
 
 class NoNextPosException(Exception):
     """
@@ -113,7 +111,7 @@ class AntGroup:
         # loop through the verticies of the ngon
         for vertex in ngon.getVerticies():
             # add an ant to the group
-            self.ants.append(Ant(vertex, SPEED))
+            self.ants.append(Ant(vertex, sim.SPEED))
         # set the relationship between ant and next ant
         for ant,nextAnt in zip(self.ants[:-1], self.ants[1:]):
             ant.setNextAnt(nextAnt)
@@ -123,7 +121,12 @@ class AntGroup:
         return self.ants
 
     def getPositions(self):
-        """Returns a matrix of x,y positions of ants"""
+        """
+        Returns a matrix of x,y positions of ants
+
+        row 1: the x positions
+        row 2: the y positions
+        """
         positions = [[],[]]
         for ant in self.ants:
             x,y = ant.getPosition()
@@ -190,8 +193,8 @@ class Ngon:
         phi = 0 # start the first point at phi=0
         points = []
         for phi in np.arange(0, 2*pi, 2*pi/self.n):
-            points.append([INITIAL_DISTANCE_ORIGIN*cos(phi), 
-                INITIAL_DISTANCE_ORIGIN*sin(phi)])
+            points.append([sim.INITIAL_DISTANCE_ORIGIN*cos(phi), 
+                sim.INITIAL_DISTANCE_ORIGIN*sin(phi)])
 
         return points
 
@@ -227,7 +230,7 @@ class AnimationManager:
         if(distance < 0.0001):
             raise AntsReachedEndException
         # return the timestep
-        return ALPHA/SPEED*distance
+        return sim.ALPHA/sim.SPEED*distance
     
     def step(self):
         dt = self._getDtForNextStep()
@@ -248,95 +251,49 @@ class AnimationManager:
     def getAntGroup(self):
         return self.antGroup
 
-def calcAnalyticalSolution():
-    ngon = Ngon(NUMBER_OF_ANTS)
-    phi = ngon.getInteriorAngle()
-    intialDistanceAnts = 2*INITIAL_DISTANCE_ORIGIN*sin(2*pi/NUMBER_OF_ANTS/2)
-    return intialDistanceAnts/(SPEED*(1-sin(phi-pi/2)))
-
-###############################################################
-# Main
-###############################################################
-NUMBER_OF_ANTS = 7
-SPEED = 1
-INITIAL_DISTANCE_ORIGIN = 1
-ALPHA = 1/100
-
-if __name__ == '__main__':
-    animationManager = AnimationManager(AntGroup(NUMBER_OF_ANTS))
-
-    def init():
-        """initialize animation"""
-        dots.set_data([],[])
-        time_text.set_text('')
-        dt_text.set_text('')
-        distance_text.set_text('')
-        analy_text.set_text('expected time = %.10f' % 
-                calcAnalyticalSolution())
-        return dots, time_text, dt_text,
-
-    def animate(i):
-        """perform animation step"""
-        animationManager.step()
-        x,y = animationManager.getPositionsWithHistory()
-        dots.set_data(x,y)
-        time_text.set_text('time = %.10f' % 
-                animationManager.getTimeElapsed())
-        dt_text.set_text('dt = %.10f' % 
-                animationManager._getDtForNextStep())
-        distance_text.set_text('distance = %.10f' % 
-                animationManager.getAntGroup().getDistanceBetweenAnts())
-        return dots, time_text, dt_text, distance_text,
-    
-    ###########################################################
-    # Setup plot
-    ###########################################################
-    # set up figure and animation
-    fig = plt.figure()
-    ax = fig.add_subplot(111, aspect='equal', autoscale_on=False,
-                         xlim=(-INITIAL_DISTANCE_ORIGIN, 
-                             INITIAL_DISTANCE_ORIGIN), 
-                         ylim=(-INITIAL_DISTANCE_ORIGIN, 
-                             INITIAL_DISTANCE_ORIGIN))
-    ax.grid()
-    # dots to go on the plot
-    dots, = ax.plot([], 'bo', ms=.3)
-    # declare the text that indicates elapsed time
-    time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
-    # text that indicates how much time each step corresponds to
-    dt_text = ax.text(0.02, 0.90, '', transform=ax.transAxes)
-    # text that idicates the analytical solution
-    analy_text = ax.text(0.5, 0.95, '', transform=ax.transAxes)
-    distance_text = ax.text(0.02, 0.85, '', transform=ax.transAxes)
-
-    # choose the interval based on dt and the time to animate one step
-    from time import time
-    t0 = time()
-    animate(0)
-    t1 = time()
+class simulationManager:
     """
-    Interval is the length of time that the animation should pause
-    in between each frame. The amount of time it takes to calculate
-    each frame depends on how complicated the calcualation is, but there's
-    this extra `interval` length of time where the animation pauses
-    before calculating the next frame.
+    Manages the simulation. Basically, pre-computes the simulation 
+    and stores it in an array to be used later for the animation.
+
+    REQUIRES: All the ants are moving at the same speed.
+
+    INVARIANTS:
+        1. The distance between the ants is not aproximately equal 0
+
+    alpha: float
+        REQUIRES: 0 < alpha < 1
+        What percentage of the distance between the ant in front of it
+        should the ants move with the next step. E.g. alpha = 1/10, then
+        with each step, the ants move forward 10% of the distance between
+        the ant infront of it.
+    antGroup: AntGroup
+        The group of ants this manager is handling.
     """
-    # interval = 1000 * dt - (t1 - t0)
-    interval = 0 
+    def __init__(self, antGroup):
+        self.antGroup = antGroup
 
-    ani = animation.FuncAnimation(fig, animate, frames=2000,
-                                  interval=interval, 
-                                  blit=True, 
-                                  init_func=init,
-                                  repeat=False)
+    def _getDtForNextStep(self):
+        # distance between the ants
+        distance = self.antGroup.getDistanceBetweenAnts()
+        # ensure class invariant
+        if(distance < 0.0001):
+            raise AntsReachedEndException
+        # return the timestep
+        return sim.ALPHA/sim.SPEED*distance
 
-    # save the animation as an mp4.  This requires ffmpeg or mencoder to be
-    # installed.  The extra_args ensure that the x264 codec is used, so that
-    # the video can be embedded in html5.  You may need to adjust this for
-    # your system: for more information, see
-    # http://matplotlib.sourceforge.net/api/animation_api.html
-    ani.save('ani.gif', writer='imagemagick', fps=50)
-    #ani.save('double_pendulum.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
-    
-    # plt.show()
+    def step(self):
+        dt = self._getDtForNextStep()
+        self.antGroup.step(dt)
 
+    def getTimeElapsed(self):
+        return self.antGroup.timeElapsed
+
+    def getAntGroup(self):
+        return self.antGroup
+
+    def getPositions(self):
+        return self.antGroup.getPositions()
+
+    def getDistanceBetweenAnts(self):
+        return self.antGroup.getDistanceBetweenAnts()
