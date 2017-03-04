@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     def animate(i):
         """perform animation step"""
-        dots.set_data(curr)
+        dots.set_data(np.transpose([[1,2],[2,2],[3,3]]))
         print(curr)
         return dots,
 

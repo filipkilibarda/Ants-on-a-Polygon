@@ -1,10 +1,12 @@
 import unittest
-import ants
 from numpy.testing import assert_almost_equal 
 import numpy as np
 from math import pi,sqrt,sin,cos
 import matplotlib.pyplot as plt
 import math
+
+import ants
+import simulation as sim
 
 """
 d: int
@@ -13,8 +15,8 @@ d: int
 speed: int
     Speed ants should move with.
 """
-d = ants.INITIAL_DISTANCE_ORIGIN
-speed = ants.SPEED
+d = sim.INITIAL_DISTANCE_ORIGIN
+speed = sim.SPEED
 
 class AntTest(unittest.TestCase):
     def setUp(self):
@@ -127,16 +129,120 @@ class PlotTest(unittest.TestCase):
         expected = (2, self.numAnts)
         self.assertTupleEqual(shape, expected)
 
-class AnimationManagerTest(unittest.TestCase):
-    numAnts = 4
-    
-    def setUp(self):
-        antGroup = ants.AntGroup(self.numAnts)
-        self.animationManager = ants.AnimationManager(antGroup)
+class SimulationManagerTest(unittest.TestCase):
+    def testCreateSimulationManager(self):
+        kwargs = {
+            "antGroup":ants.AntGroup(sim.NUMBER_OF_ANTS),
+            "maxFrames":2**14,
+            "alpha": 1/100,
+            }
+        simManager = ants.SimulationManager(**kwargs)
 
-    def testGetPositions(self):
-        self.animationManager.step()
-        positions = self.animationManager.getPositionsWithHistory()
+    def testRunSim(self):
+        kwargs = {
+            "antGroup":ants.AntGroup(sim.NUMBER_OF_ANTS),
+            "maxFrames":2**14,
+            "alpha": 1/100,
+            }
+        simManager = ants.SimulationManager(**kwargs)
+        simManager.runSimulation()
+
+    def testRunSim2(self):
+        kwargs = {
+            "antGroup":ants.AntGroup(4),
+            "maxFrames":4,
+            "alpha": 1/1000,
+            }
+        simManager = ants.SimulationManager(**kwargs)
+        simManager.runSimulation()
+        shape = np.array(simManager.getAllPositions()).shape
+        self.assertEqual((4*4,2),shape)
+        self.assertEqual(4,len(simManager.getAllTimeElapsed()))
+        self.assertEqual(4,len(simManager.getAllDistanceBetweenAnts()))
+
+    def testRunSim3(self):
+        n = 4
+        kwargs = {
+            "antGroup":ants.AntGroup(n),
+            "maxFrames":2**14,
+            "alpha": 1/1000,
+            }
+        simManager = ants.SimulationManager(**kwargs)
+        simManager.runSimulation()
+        framesUsed = simManager.getNumFramesUsedAfterReduction()
+        positions = simManager.getAllPositions()
+        times = simManager.getAllTimeElapsed()
+        distances = simManager.getAllDistanceBetweenAnts()
+        self.assertEqual(n*framesUsed, len(positions))
+        self.assertEqual(framesUsed, len(times))
+        self.assertEqual(framesUsed, len(distances))
+        self.assertGreater(distances[framesUsed-1],0)
+        self.assertGreater(times[framesUsed-1],0)
+
+    def testRunSim4(self):
+        n = 4
+        factor = 2**3
+        kwargs = {
+            "antGroup":ants.AntGroup(n),
+            "maxFrames":2**14,
+            "frameReductionFactor":factor,
+            "alpha": 1/1000,
+            }
+        simManager = ants.SimulationManager(**kwargs)
+        simManager.runSimulation()
+        framesUsed = simManager.getNumFramesUsedAfterReduction()
+        positions = simManager.getAllPositions()
+        times = simManager.getAllTimeElapsed()
+        distances = simManager.getAllDistanceBetweenAnts()
+
+        self.assertEqual(n*framesUsed, len(positions))
+        self.assertEqual(framesUsed, len(times))
+        self.assertEqual(framesUsed, len(distances))
+        self.assertGreater(distances[framesUsed-1],0)
+        self.assertGreater(times[framesUsed-1],0)
+
+    def testRunSim5(self):
+        n = 4
+        factor = 2
+        maxFrames = 4
+        kwargs = {
+            "antGroup":ants.AntGroup(n),
+            "maxFrames":maxFrames,
+            "frameReductionFactor":factor,
+            "alpha": 1/1000,
+            }
+        simManager = ants.SimulationManager(**kwargs)
+        simManager.runSimulation()
+        positions = simManager.getIthPositions(2)
+        xPositions = simManager.getIthXPositions(2)
+        yPositions = simManager.getIthYPositions(2)
+        times = simManager.getIthTimeElapsed(2)
+        distances = simManager.getIthDistanceBetweenAnts(2)
+        
+        self.assertEqual((8,),xPositions.shape)
+        self.assertEqual((8,),yPositions.shape)
+        self.assertGreater(distances,0)
+        self.assertGreater(times,0)
+        self.assertEqual(2,simManager.getNumFramesUsedAfterReduction())
+
+    def testRunSim6(self):
+        n = 4
+        factor = 8
+        maxFrames = 2**5
+        antGroup = ants.AntGroup(n)
+        kwargs = {
+            "antGroup":antGroup,
+            "maxFrames":maxFrames,
+            "frameReductionFactor":factor,
+            "alpha": 1/100,
+            }
+        simManager = ants.SimulationManager(**kwargs)
+        origPositions = antGroup.getPositions()
+        simManager.runSimulation()
+        xPositions = simManager.getIthXPositions(0)
+        yPositions = simManager.getIthYPositions(0)
+        assert_almost_equal(origPositions[0],xPositions)
+        assert_almost_equal(origPositions[1],yPositions)
 
 if __name__ == '__main__':
     unittest.main()

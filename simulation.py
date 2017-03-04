@@ -10,48 +10,46 @@ def calcAnalyticalSolution():
     intialDistanceAnts = 2*INITIAL_DISTANCE_ORIGIN*sin(2*pi/NUMBER_OF_ANTS/2)
     return intialDistanceAnts/(SPEED*(1-sin(phi-pi/2)))
 
+"""
+ALPHA: float
+    REQUIRES: 0 < alpha < 1
+    What percentage of the distance between the ant in front of it
+    should the ants move with the next step. E.g. alpha = 1/10, then
+    with each step, the ants move forward 10% of the distance between
+    the ant infront of it.
+"""
 NUMBER_OF_ANTS = 4
 SPEED = 1
 INITIAL_DISTANCE_ORIGIN = 1
-ALPHA = 1/100
 
 if __name__ == "__main__":
-    frames = 2**14 # max number of frames to compute
-    frameCountFactor = 2**3 # the factor for how many frames to cut out
-    simulationManager = ants.simulationManager(ants.AntGroup(NUMBER_OF_ANTS))
-
-    positions = np.zeros((NUMBER_OF_ANTS*frames,2))
-    elapsedTimes = np.zeros(frames)
-    distances = np.zeros(frames)
-    for i in range(frames):
-        x,y = simulationManager.getPositions()
-        positions[i*NUMBER_OF_ANTS:(i+1)*NUMBER_OF_ANTS,0] = x
-        positions[i*NUMBER_OF_ANTS:(i+1)*NUMBER_OF_ANTS,1] = y
-        elapsedTimes[i] = simulationManager.getTimeElapsed()
-        distances[i] = simulationManager.getDistanceBetweenAnts()
-        try:
-            simulationManager.step()
-        except ants.AntsReachedEndException:
-            print("Reached end of simulation")
-            numFramesUsed = i+1
-            break
+    kwargs = {
+        "antGroup": ants.AntGroup(NUMBER_OF_ANTS),
+        "maxFrames": 2**20,
+        "frameReductionFactor": 2**6, 
+        "alpha": 1/1000,
+        }
+    simulationManager = ants.SimulationManager(**kwargs)
+    simulationManager.runSimulation()
 
     def init():
         """initialize animation"""
-        analy_text.set_text('expected time = %.10f' % 
+        analy_text.set_text('Expected time = %.10f' % 
                 calcAnalyticalSolution())
         return (time_text,)
 
     def animate(i):
         """perform animation step"""
-        i = frameCountFactor*i
-        print(i)
+        if i >= simulationManager.getNumFramesUsedAfterReduction():
+            i = simulationManager.getNumFramesUsedAfterReduction()
         dots.set_data(
-            positions[:i*NUMBER_OF_ANTS,0],
-            positions[:i*NUMBER_OF_ANTS,1],
+            simulationManager.getIthXPositions(i),
+            simulationManager.getIthYPositions(i)
             )
-        time_text.set_text('time = %.10f' % elapsedTimes[i])
-        distance_text.set_text('distance = %.10f' % distances[i])
+        time_text.set_text('Elapsed time   = %.10f' % 
+                simulationManager.getIthTimeElapsed(i))
+        distance_text.set_text('Distance between ants = %.10f' % 
+                simulationManager.getIthDistanceBetweenAnts(i))
         return (dots, time_text, distance_text,)
 
     ###########################################################
@@ -64,21 +62,15 @@ if __name__ == "__main__":
                              INITIAL_DISTANCE_ORIGIN), 
                          ylim=(-INITIAL_DISTANCE_ORIGIN, 
                              INITIAL_DISTANCE_ORIGIN))
-    ax.grid()
     # dots to go on the plot
     dots, = ax.plot([], 'bo', ms=.3)
     # declare the text that indicates elapsed time
-    time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
+    time_text = ax.text(0.02, 0.90, '', transform=ax.transAxes)
     # text that idicates the analytical solution
-    analy_text = ax.text(0.5, 0.95, '', transform=ax.transAxes)
+    analy_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
     # text that indicates the distance between each ant
     distance_text = ax.text(0.02, 0.85, '', transform=ax.transAxes)
 
-    # choose the interval based on dt and the time to animate one step
-    from time import time
-    t0 = time()
-    animate(0)
-    t1 = time()
     """
     Interval is the length of time that the animation should pause
     in between each frame. The amount of time it takes to calculate
@@ -86,16 +78,17 @@ if __name__ == "__main__":
     this extra `interval` length of time where the animation pauses
     before calculating the next frame.
     """
-    # interval = 1000 * dt - (t1 - t0)
-    interval = 0
+    interval = 100
+    # number of frame steps to rest on the last frame
+    pause = 100
 
     ani = animation.FuncAnimation(fig, animate, 
-            frames=int(frames/frameCountFactor),
-            interval=interval, 
-            blit=True, 
-            init_func=init,
-            repeat=False)
+        frames=simulationManager.getNumFramesUsedAfterReduction()+pause,
+        interval=interval, 
+        blit=True, 
+        init_func=init,
+        repeat=False)
 
-    # ani.save('ani.gif', writer='imagemagick', fps=50)
+    ani.save('ani.gif', writer='imagemagick', fps=50)
 
-    plt.show()
+    # plt.show()

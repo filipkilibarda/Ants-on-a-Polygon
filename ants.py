@@ -1,6 +1,7 @@
 import numpy as np
 from math import pi,cos,sin,sqrt
 import simulation as sim
+from itertools import cycle,compress
 
 class NoNextPosException(Exception):
     """
@@ -162,6 +163,9 @@ class AntGroup:
         # advance the time
         self.timeElapsed += dt
 
+    def getNumberOfAnts(self):
+        return self.n
+
 class Ngon:
     """
     Represents an N-sided polygon centered on `origin`
@@ -198,60 +202,7 @@ class Ngon:
 
         return points
 
-class AnimationManager:
-    """
-    Manages certain parameters of the animation.
-
-    REQUIRES: All the ants are moving at the same speed.
-
-    INVARIANTS:
-        1. The distance between the ants is not aproximately equal 0
-
-    alpha: float
-        REQUIRES: 0 < alpha < 1
-        What percentage of the distance between the ant in front of it
-        should the ants move with the next step. E.g. alpha = 1/10, then
-        with each step, the ants move forward 10% of the distance between
-        the ant infront of it.
-    antGroup: AntGroup
-        The group of ants this manager is handling.
-    antPositionsWithHistory: 2-d list
-        Keeps track of the previous and the current positions of the
-        ants.
-    """
-    def __init__(self, antGroup):
-        self.antGroup = antGroup
-        self.antPositionsWithHistory = {"x":[], "y":[]}
-
-    def _getDtForNextStep(self):
-        # distance between the ants
-        distance = self.antGroup.getDistanceBetweenAnts()
-        # ensure class invariant
-        if(distance < 0.0001):
-            raise AntsReachedEndException
-        # return the timestep
-        return sim.ALPHA/sim.SPEED*distance
-    
-    def step(self):
-        dt = self._getDtForNextStep()
-        self.antGroup.step(dt)
-        # get the positions of the ants
-        x,y = self.antGroup.getPositions()
-        # add the new positions to the position history
-        self.antPositionsWithHistory["x"].extend(x)
-        self.antPositionsWithHistory["y"].extend(y)
-
-    def getPositionsWithHistory(self):
-        return (self.antPositionsWithHistory["x"],
-                self.antPositionsWithHistory["y"])
-
-    def getTimeElapsed(self):
-        return self.antGroup.timeElapsed
-
-    def getAntGroup(self):
-        return self.antGroup
-
-class simulationManager:
+class SimulationManager:
     """
     Manages the simulation. Basically, pre-computes the simulation 
     and stores it in an array to be used later for the animation.
@@ -260,40 +211,130 @@ class simulationManager:
 
     INVARIANTS:
         1. The distance between the ants is not aproximately equal 0
-
-    alpha: float
-        REQUIRES: 0 < alpha < 1
-        What percentage of the distance between the ant in front of it
-        should the ants move with the next step. E.g. alpha = 1/10, then
-        with each step, the ants move forward 10% of the distance between
-        the ant infront of it.
-    antGroup: AntGroup
-        The group of ants this manager is handling.
     """
-    def __init__(self, antGroup):
+    def __init__(self, antGroup=None, maxFrames=2**14,
+            frameReductionFactor=1, alpha=None):
+        """
+        antGroup: AntGroup
+            The group of ants this manager is handling.
+        positions,elapsedTimes,distances: nd-arrays
+            Accumulate data as the simulation goes.
+        alpha: float
+            REQUIRES: 0 < alpha < 1
+            What percentage of the distance between the ant in front of it
+            should the ants move with the next step. E.g. alpha = 1/10, then
+            with each step, the ants move forward 10% of the distance between
+            the ant infront of it.
+        """
+        if int(frameReductionFactor) < 1:
+            raise ValueError("Reduction factor must be > 1")
         self.antGroup = antGroup
+        self.positions = None
+        self.elpasedTimes = None
+        self.distances = None
+        self.maxFrames = maxFrames
+        self.frameReductionFactor = int(frameReductionFactor)
+        self.numFramesUsed = None
+        self.alpha = alpha
 
     def _getDtForNextStep(self):
+        if self.alpha is None:
+            raise ValueError("Must set alpha first")
         # distance between the ants
         distance = self.antGroup.getDistanceBetweenAnts()
         # ensure class invariant
         if(distance < 0.0001):
             raise AntsReachedEndException
         # return the timestep
-        return sim.ALPHA/sim.SPEED*distance
+        return self.alpha/sim.SPEED*distance
 
-    def step(self):
+    def _step(self):
         dt = self._getDtForNextStep()
         self.antGroup.step(dt)
 
-    def getTimeElapsed(self):
-        return self.antGroup.timeElapsed
+    def runSimulation(self):
+        """
+        Runs the simulation and accumulates the data points in an array
+        as it goes.
+        """
+        n = self.antGroup.getNumberOfAnts()
+        maxFrames = self.maxFrames
+        skip = self.frameReductionFactor
+
+        if self.antGroup is None:
+            raise ValueError("You must set an antGroup for this simulation")
+
+        positions = np.zeros((n*maxFrames,2))
+        elapsedTimes = np.zeros(maxFrames)
+        distances = np.zeros(maxFrames)
+        for i in range(maxFrames):
+            x,y = self.getCurrentPositions()
+            positions[i*n:(i+1)*n,0] = x
+            positions[i*n:(i+1)*n,1] = y
+            elapsedTimes[i] = self.getCurrentTimeElapsed()
+            distances[i] = self.getCurrentDistanceBetweenAnts()
+            try:
+                self._step()
+            except AntsReachedEndException:
+                break
+        self.numFramesUsed = i+1
+        self.elapsedTimes = elapsedTimes[:self.numFramesUsed:skip]
+        self.distances = distances[:self.numFramesUsed:skip]
+        # slice the positions
+        positions = positions[:self.numFramesUsed*n]
+        c = cycle([True]*n + [False]*n*(skip-1))
+        self.positions = np.array(list(compress(positions,c)))
+
+    def setMaxFrames(self, maxFrames):
+        self.maxFrames = maxFrames
+
+    def setFrameReducionFactor(self, factor):
+        self.frameReductionFactor = factor
+
+    def setAntGroup(self, antGroup):
+        self.antGroup = antGroup
 
     def getAntGroup(self):
         return self.antGroup
 
-    def getPositions(self):
+    def getCurrentTimeElapsed(self):
+        return self.antGroup.timeElapsed
+
+    def getCurrentPositions(self):
         return self.antGroup.getPositions()
 
-    def getDistanceBetweenAnts(self):
+    def getCurrentDistanceBetweenAnts(self):
         return self.antGroup.getDistanceBetweenAnts()
+
+    def getAllTimeElapsed(self):
+        return self.elapsedTimes
+
+    def getAllPositions(self):
+        return self.positions
+
+    def getAllDistanceBetweenAnts(self):
+        return self.distances
+
+    def getNumberOfFramesUsed(self):
+        return self.numFramesUsed
+
+    def getNumFramesUsedAfterReduction(self):
+        return len(self.getAllTimeElapsed())
+
+    def getIthPositions(self,frameNumber):
+        n = self.antGroup.getNumberOfAnts()
+        return self.positions[:(frameNumber+1)*n]
+
+    def getIthXPositions(self,frameNumber):
+        n = self.antGroup.getNumberOfAnts()
+        return self.positions[:(frameNumber+1)*n,0]
+
+    def getIthYPositions(self,frameNumber):
+        n = self.antGroup.getNumberOfAnts()
+        return self.positions[:(frameNumber+1)*n,1]
+
+    def getIthTimeElapsed(self,frameNumber):
+        return self.elapsedTimes[frameNumber-1]
+
+    def getIthDistanceBetweenAnts(self,frameNumber):
+        return self.distances[frameNumber-1]
