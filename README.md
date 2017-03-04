@@ -34,7 +34,7 @@ First we need to find how fast the ant infront is moving relative to the followe
 
     (n-2) × 180° / n
     
-where `n` is the number of sides, we can determine the angle `a` as shown in the image. From that, we determine that the ant infront is moving at a speed of 
+where `n` is the number of sides (of the polygon that the ants form), we can determine the angle `a` as shown in the image. From that, we determine that the ant infront is moving at a speed of 
 
     v sin(a)
 
