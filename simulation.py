@@ -18,7 +18,7 @@ ALPHA: float
     with each step, the ants move forward 10% of the distance between
     the ant infront of it.
 """
-NUMBER_OF_ANTS = 4
+NUMBER_OF_ANTS = 8
 SPEED = 1
 INITIAL_DISTANCE_ORIGIN = 1
 
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     kwargs = {
         "antGroup": ants.AntGroup(NUMBER_OF_ANTS),
         "maxFrames": 2**20,
-        "frameReductionFactor": 2**6, 
+        "frameReductionFactor": 2**7, 
         "alpha": 1/1000,
         }
     simulationManager = ants.SimulationManager(**kwargs)
@@ -89,6 +89,6 @@ if __name__ == "__main__":
         init_func=init,
         repeat=False)
 
-    # ani.save('ani.gif', writer='imagemagick', fps=50)
+    ani.save('ani.gif', writer='imagemagick', fps=50)
 
-    plt.show()
+    # plt.show()
