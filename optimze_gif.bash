@@ -1,7 +1,6 @@
 #!/bin/bash
 
-num_frames=499
-gifsicle -U ani.gif `seq -f "#%g" 0 10 $num_frames` -O2 -o out.gif
+gifsicle -O3 < ani.gif > out.gif
 
 printf "\n----------------------\n"
 echo "Size of original gif: "$(du -sh ani.gif)
