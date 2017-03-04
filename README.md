@@ -24,8 +24,6 @@ Since the ant infront is always moving perpendicular to the ant that's following
 
 ![just a few ants arranged on a square](/imgs/square.png?raw=true)
 
-Produced with [GeoGebra](https://www.math10.com/en/geometry/geogebra/geogebra.html).
-
 How about with `n` ants arranged on a polygon with `n` sides?
 
 ![general case](/imgs/general.png?raw=true)
@@ -49,3 +47,6 @@ as the speed at which the ants are closing in on each other. Now all we have to 
     t = d/v/(1-sin(a))
 
 Gives us the time it takes for the ants to reach the center.
+
+
+Geometry images produced with [GeoGebra](https://www.math10.com/en/geometry/geogebra/geogebra.html).
