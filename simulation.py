@@ -10,15 +10,7 @@ def calcAnalyticalSolution():
     intialDistanceAnts = 2*INITIAL_DISTANCE_ORIGIN*sin(2*pi/NUMBER_OF_ANTS/2)
     return intialDistanceAnts/(SPEED*(1-sin(phi-pi/2)))
 
-"""
-ALPHA: float
-    REQUIRES: 0 < alpha < 1
-    What percentage of the distance between the ant in front of it
-    should the ants move with the next step. E.g. alpha = 1/10, then
-    with each step, the ants move forward 10% of the distance between
-    the ant infront of it.
-"""
-NUMBER_OF_ANTS = 8
+NUMBER_OF_ANTS = 16
 SPEED = 1
 INITIAL_DISTANCE_ORIGIN = 1
 
@@ -78,7 +70,7 @@ if __name__ == "__main__":
     this extra `interval` length of time where the animation pauses
     before calculating the next frame.
     """
-    interval = 100
+    interval = 20
     # number of frame steps to rest on the last frame
     pause = 100
 
@@ -89,6 +81,6 @@ if __name__ == "__main__":
         init_func=init,
         repeat=False)
 
-    ani.save('ani.gif', writer='imagemagick', fps=50)
+    ani.save('imgs/ani.gif', writer='imagemagick', fps=50)
 
     # plt.show()

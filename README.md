@@ -2,7 +2,7 @@ Ants on a Polygon...
 ----
 So you have `n` ants arranged on the verticies of a symetrical polygon with `n` sides. Each ant moves exactly toward the ant infront of it until they all reach the center. We can assume that each ant starts a distance, `d` from the ant infront of it and moves at a speed `v`.
 
-![ants on a polygon](/imgs/ants8.gif?raw=true)
+![ants on a polygon](/imgs/ants16.gif?raw=true)
 
 Question
 ----
