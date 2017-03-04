@@ -89,6 +89,6 @@ if __name__ == "__main__":
         init_func=init,
         repeat=False)
 
-    ani.save('ani.gif', writer='imagemagick', fps=50)
+    # ani.save('ani.gif', writer='imagemagick', fps=50)
 
-    # plt.show()
+    plt.show()
